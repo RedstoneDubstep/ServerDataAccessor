@@ -121,6 +121,6 @@ public class StatUtil {
 		Optional<ResourceKey<StatType<?>>> optional = resourceKey.cast(Registries.STAT_TYPE);
 		ResourceKey<StatType<?>> statKey = optional.orElseThrow(() -> new SimpleCommandExceptionType(new LiteralMessage("Unknown statistic")).create());
 
-		return ctx.getSource().getServer().registryAccess().registryOrThrow(Registries.STAT_TYPE).getOptional(statKey).orElseThrow(() -> new SimpleCommandExceptionType(new LiteralMessage("Unknown statistic")).create());
+		return ctx.getSource().getServer().registryAccess().lookupOrThrow(Registries.STAT_TYPE).getOptional(statKey).orElseThrow(() -> new SimpleCommandExceptionType(new LiteralMessage("Unknown statistic")).create());
 	}
 }

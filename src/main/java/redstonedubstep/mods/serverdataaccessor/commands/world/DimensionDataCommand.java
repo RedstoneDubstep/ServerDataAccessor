@@ -26,7 +26,7 @@ import redstonedubstep.mods.serverdataaccessor.util.FormatUtil;
 import redstonedubstep.mods.serverdataaccessor.util.TagFormatUtil;
 
 public class DimensionDataCommand {
-	private static final SuggestionProvider<CommandSourceStack> SUGGEST_LEVEL_DATA_FILES = (ctx, suggestionsBuilder) -> SharedSuggestionProvider.suggest(FormatUtil.safeArrayStream(DimensionArgument.getDimension(ctx, "dimension").getDataStorage().dataFolder.listFiles()).map(f -> f.getName().replace(".dat", "")), suggestionsBuilder);
+	private static final SuggestionProvider<CommandSourceStack> SUGGEST_LEVEL_DATA_FILES = (ctx, suggestionsBuilder) -> SharedSuggestionProvider.suggest(FormatUtil.safeArrayStream(DimensionArgument.getDimension(ctx, "dimension").getDataStorage().dataFolder.toFile().listFiles()).map(f -> f.getName().replace(".dat", "")), suggestionsBuilder);
 
 	public static ArgumentBuilder<CommandSourceStack, ?> register() {
 		return Commands.literal("dimensiondata")

@@ -28,7 +28,8 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.GameProfileArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.ResourceKeyArgument;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.HoverEvent;
@@ -49,10 +50,10 @@ public class AdvancementsCommand {
 						.then(Commands.literal("count").executes(ctx -> countAdvancements(ctx, GameProfileArgument.getGameProfiles(ctx, "player"))))
 						.then(Commands.literal("advancement").executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), false, 1, null))
 								.then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), false, IntegerArgumentType.getInteger(ctx, "page"), null))
-										.then(Commands.argument("advancement", ResourceLocationArgument.id()).suggests(SUGGEST_ADVANCEMENTS).executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), false, IntegerArgumentType.getInteger(ctx, "page"), ResourceLocationArgument.getAdvancement(ctx, "advancement"))))))
+										.then(Commands.argument("advancement", ResourceKeyArgument.key(Registries.ADVANCEMENT)).suggests(SUGGEST_ADVANCEMENTS).executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), false, IntegerArgumentType.getInteger(ctx, "page"), ResourceKeyArgument.getAdvancement(ctx, "advancement"))))))
 						.then(Commands.literal("recipe").executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), true, 1, null))
 								.then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), true, IntegerArgumentType.getInteger(ctx, "page"), null))
-										.then(Commands.argument("recipe", ResourceLocationArgument.id()).suggests(SUGGEST_RECIPES).executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), true, IntegerArgumentType.getInteger(ctx, "page"), ResourceLocationArgument.getAdvancement(ctx, "recipe")))))));
+										.then(Commands.argument("recipe", ResourceKeyArgument.key(Registries.ADVANCEMENT)).suggests(SUGGEST_RECIPES).executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), true, IntegerArgumentType.getInteger(ctx, "page"), ResourceKeyArgument.getAdvancement(ctx, "recipe")))))));
 	}
 
 	private static int getAdvancementsFrom(CommandContext<CommandSourceStack> ctx, Collection<GameProfile> profiles, boolean recipe, int page, AdvancementHolder advancement) throws CommandSyntaxException {
