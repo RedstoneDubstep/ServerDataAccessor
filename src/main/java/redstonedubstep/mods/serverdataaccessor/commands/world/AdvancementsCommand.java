@@ -33,7 +33,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.HoverEvent.Action;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerAdvancements;
@@ -101,7 +100,7 @@ public class AdvancementsCommand {
 
 		int completedCriteria = (int)sortedCriteria.stream().filter(p -> p.getValue().isDone()).count();
 
-		ctx.getSource().sendSuccess(() -> Component.translatable("Sending %1$s %2$s of player %3$s: %4$s complete, %5$s out of %6$s criteria completed: %7$s", advancementReference, advancementFormatter.apply(advancement), profile.getName(), Component.translatable("%s%%", progress).withStyle(ChatFormatting.GRAY), completedCriteria, sortedCriteria.size(), ComponentUtils.formatList(sortedCriteria, p -> Component.literal(p.getLeft()).withStyle(s -> s.applyFormat(p.getRight().isDone() ? ChatFormatting.GREEN : ChatFormatting.DARK_RED).withHoverEvent(new HoverEvent(Action.SHOW_TEXT, Component.literal("Obtained: " + (p.getRight().isDone() ? p.getRight().getObtained() : "Never"))))))), false);
+		ctx.getSource().sendSuccess(() -> Component.translatable("Sending %1$s %2$s of player %3$s: %4$s complete, %5$s out of %6$s criteria completed: %7$s", advancementReference, advancementFormatter.apply(advancement), profile.getName(), Component.translatable("%s%%", progress).withStyle(ChatFormatting.GRAY), completedCriteria, sortedCriteria.size(), ComponentUtils.formatList(sortedCriteria, p -> Component.literal(p.getLeft()).withStyle(s -> s.applyFormat(p.getRight().isDone() ? ChatFormatting.GREEN : ChatFormatting.DARK_RED).withHoverEvent(new HoverEvent.ShowText(Component.literal("Obtained: " + (p.getRight().isDone() ? p.getRight().getObtained() : "Never"))))))), false);
 		return (int)progress;
 	}
 

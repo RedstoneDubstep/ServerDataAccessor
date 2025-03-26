@@ -67,7 +67,7 @@ public class WorldDataCommand {
 
 		CommonHooks.writeAdditionalLevelSaveData(data, fmlWorldData);
 
-		Tag foundTag = fmlWorldData.getCompound("fml");
+		Tag foundTag = fmlWorldData.getCompoundOrEmpty("fml");
 		boolean success = false;
 		int depth = 0;
 

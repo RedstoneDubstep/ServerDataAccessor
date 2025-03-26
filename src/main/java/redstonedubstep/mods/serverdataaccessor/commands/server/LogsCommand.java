@@ -27,7 +27,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.ClickEvent.Action;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.HoverEvent;
@@ -77,10 +76,10 @@ public class LogsCommand {
 			int listContentSize = logLines.stream().mapToInt(s -> s.getBytes(StandardCharsets.UTF_8).length).sum();
 			int totalPages = (int)Math.ceil(listContentSize / 60000.0D);
 			int currentPage = page > totalPages ? totalPages - 1 : page - 1;
-			HoverEvent infoText = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to copy log content"));
+			HoverEvent infoText = new HoverEvent.ShowText(Component.literal("Click to copy log content"));
 			List<String> splitLogLines = FormatUtil.splitStringsToPage(logLines, currentPage, 60000);
 
-			ClickEvent copyToClipboard = new ClickEvent(Action.COPY_TO_CLIPBOARD, ComponentUtils.formatList(splitLogLines, Component.literal("\n"), Component::literal).getString());
+			ClickEvent copyToClipboard = new ClickEvent.CopyToClipboard(ComponentUtils.formatList(splitLogLines, Component.literal("\n"), Component::literal).getString());
 
 			ctx.getSource().sendSuccess(() -> Component.translatable("Sending log \"%1$s\" (%2$s total lines): %3$s", name, totalLines, Component.literal("Log content").withStyle(s -> s.applyFormat(ChatFormatting.UNDERLINE).withClickEvent(copyToClipboard).withHoverEvent(infoText))), false);
 
