@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -36,6 +37,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerAdvancements;
+import net.minecraft.server.players.NameAndId;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import redstonedubstep.mods.serverdataaccessor.util.FormatUtil;
 
@@ -55,10 +57,9 @@ public class AdvancementsCommand {
 										.then(Commands.argument("recipe", ResourceKeyArgument.key(Registries.ADVANCEMENT)).suggests(SUGGEST_RECIPES).executes(ctx -> getAdvancementsFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "player"), true, IntegerArgumentType.getInteger(ctx, "page"), ResourceKeyArgument.getAdvancement(ctx, "recipe")))))));
 	}
 
-	private static int getAdvancementsFrom(CommandContext<CommandSourceStack> ctx, Collection<GameProfile> profiles, boolean recipe, int page, AdvancementHolder advancement) throws CommandSyntaxException {
-		GameProfile profile = ensureOneTarget(profiles);
-		FakePlayer fakePlayer = new FakePlayer(ctx.getSource().getServer().overworld(), profile);
-		PlayerAdvancements playerAdvancements = ctx.getSource().getServer().getPlayerList().getPlayerAdvancements(fakePlayer);
+	private static int getAdvancementsFrom(CommandContext<CommandSourceStack> ctx, Collection<NameAndId> profiles, boolean recipe, int page, AdvancementHolder advancement) throws CommandSyntaxException {
+		NameAndId profile = ensureOneTarget(profiles);
+		PlayerAdvancements playerAdvancements = getPlayerAdvancements(ctx, profiles);
 		String advancementReference = recipe ? "recipe advancement" : "advancement";
 		Function<AdvancementHolder, MutableComponent> advancementFormatter = adv -> Component.literal("").withStyle(ChatFormatting.AQUA).append(Advancement.name(adv).copy());
 
@@ -70,13 +71,13 @@ public class AdvancementsCommand {
 			int currentPage = page > totalPages ? totalPages - 1 : page - 1;
 
 			if (filteredAdvancements.isEmpty()) {
-				ctx.getSource().sendFailure(Component.translatable("No %1$ss of player %2$s were found", advancementReference, profile.getName()));
+				ctx.getSource().sendFailure(Component.translatable("No %1$ss of player %2$s were found", advancementReference, profile.name()));
 				return 0;
 			}
 
 			List<Pair<AdvancementHolder, AdvancementProgress>> splitFilteredAdvancements = FormatUtil.splitToPage(filteredAdvancements, currentPage, 20);
 
-			ctx.getSource().sendSuccess(() -> Component.translatable("Sending all %1$ss of player %2$s (%3$s): %4$s", advancementReference, profile.getName(), totalEntries, ComponentUtils.formatList(splitFilteredAdvancements, p -> advancementFormatter.apply(p.getLeft()).append(Component.translatable(" (%s%%)", p.getRight().getPercent() * 100).withStyle(ChatFormatting.GRAY)))), false);
+			ctx.getSource().sendSuccess(() -> Component.translatable("Sending all %1$ss of player %2$s (%3$s): %4$s", advancementReference, profile.name(), totalEntries, ComponentUtils.formatList(splitFilteredAdvancements, p -> advancementFormatter.apply(p.getLeft()).append(Component.translatable(" (%s%%)", p.getRight().getPercent() * 100).withStyle(ChatFormatting.GRAY)))), false);
 
 			if (splitFilteredAdvancements.size() > 0 && totalPages > 1)
 				ctx.getSource().sendSuccess(() -> Component.translatable("Displaying page %1$s out of %2$s with %3$s entries", currentPage + 1, totalPages, splitFilteredAdvancements.size()), false);
@@ -88,7 +89,7 @@ public class AdvancementsCommand {
 		float progress = advancementProgress.getPercent() * 100;
 
 		if (progress == 0) {
-			ctx.getSource().sendFailure(Component.translatable("No progress on %1$s %2$s of player %3$s found", advancementReference, advancementFormatter.apply(advancement), profile.getName()));
+			ctx.getSource().sendFailure(Component.translatable("No progress on %1$s %2$s of player %3$s found", advancementReference, advancementFormatter.apply(advancement), profile.name()));
 			return 0;
 		}
 
@@ -100,14 +101,13 @@ public class AdvancementsCommand {
 
 		int completedCriteria = (int)sortedCriteria.stream().filter(p -> p.getValue().isDone()).count();
 
-		ctx.getSource().sendSuccess(() -> Component.translatable("Sending %1$s %2$s of player %3$s: %4$s complete, %5$s out of %6$s criteria completed: %7$s", advancementReference, advancementFormatter.apply(advancement), profile.getName(), Component.translatable("%s%%", progress).withStyle(ChatFormatting.GRAY), completedCriteria, sortedCriteria.size(), ComponentUtils.formatList(sortedCriteria, p -> Component.literal(p.getLeft()).withStyle(s -> s.applyFormat(p.getRight().isDone() ? ChatFormatting.GREEN : ChatFormatting.DARK_RED).withHoverEvent(new HoverEvent.ShowText(Component.literal("Obtained: " + (p.getRight().isDone() ? p.getRight().getObtained() : "Never"))))))), false);
+		ctx.getSource().sendSuccess(() -> Component.translatable("Sending %1$s %2$s of player %3$s: %4$s complete, %5$s out of %6$s criteria completed: %7$s", advancementReference, advancementFormatter.apply(advancement), profile.name(), Component.translatable("%s%%", progress).withStyle(ChatFormatting.GRAY), completedCriteria, sortedCriteria.size(), ComponentUtils.formatList(sortedCriteria, p -> Component.literal(p.getLeft()).withStyle(s -> s.applyFormat(p.getRight().isDone() ? ChatFormatting.GREEN : ChatFormatting.DARK_RED).withHoverEvent(new HoverEvent.ShowText(Component.literal("Obtained: " + (p.getRight().isDone() ? p.getRight().getObtained() : "Never"))))))), false);
 		return (int)progress;
 	}
 
-	private static int countAdvancements(CommandContext<CommandSourceStack> ctx, Collection<GameProfile> profiles) throws CommandSyntaxException {
-		GameProfile profile = ensureOneTarget(profiles);
-		FakePlayer fakePlayer = new FakePlayer(ctx.getSource().getServer().overworld(), profile);
-		PlayerAdvancements playerAdvancements = ctx.getSource().getServer().getPlayerList().getPlayerAdvancements(fakePlayer);
+	private static int countAdvancements(CommandContext<CommandSourceStack> ctx, Collection<NameAndId> profiles) throws CommandSyntaxException {
+		NameAndId profile = ensureOneTarget(profiles);
+		PlayerAdvancements playerAdvancements = getPlayerAdvancements(ctx, profiles);
 		int recipeAdvancements = 0;
 		int totalAdvancements = 0;
 
@@ -123,21 +123,21 @@ public class AdvancementsCommand {
 		int finalRecipeAdvancements = recipeAdvancements;
 		int finalTotalAdvancements = totalAdvancements;
 
-		ctx.getSource().sendSuccess(() -> Component.translatable("Player %1$s has %2$s completed advancements, %3$s of which are recipe advancements", profile.getName(), finalTotalAdvancements, finalRecipeAdvancements), false);
+		ctx.getSource().sendSuccess(() -> Component.translatable("Player %1$s has %2$s completed advancements, %3$s of which are recipe advancements", profile.name(), finalTotalAdvancements, finalRecipeAdvancements), false);
 		return finalTotalAdvancements;
 	}
 
-	private static GameProfile ensureOneTarget(Collection<GameProfile> profiles) throws CommandSyntaxException {
+	private static NameAndId ensureOneTarget(Collection<NameAndId> profiles) throws CommandSyntaxException {
 		if (profiles.size() > 1)
 			throw new SimpleCommandExceptionType(Component.literal("Targeting multiple players is not supported!")).create();
 
 		return profiles.iterator().next();
 	}
 
-	private static PlayerAdvancements getPlayerAdvancements(CommandContext<CommandSourceStack> ctx, Collection<GameProfile> profiles) throws CommandSyntaxException {
-		GameProfile profile = ensureOneTarget(profiles);
+	private static PlayerAdvancements getPlayerAdvancements(CommandContext<CommandSourceStack> ctx, Collection<NameAndId> profiles) throws CommandSyntaxException {
+		NameAndId profile = ensureOneTarget(profiles);
 		MinecraftServer server = ctx.getSource().getServer();
-		FakePlayer fakePlayer = new FakePlayer(server.overworld(), profile);
+		FakePlayer fakePlayer = new FakePlayer(server.overworld(), new GameProfile(profile.id(), profile.name(), PropertyMap.EMPTY));
 
 		return server.getPlayerList().getPlayerAdvancements(fakePlayer);
 	}

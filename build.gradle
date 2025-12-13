@@ -11,7 +11,7 @@ repositories {
 }
 
 group = 'redstonedubstep.mods'
-version = '1.0.2'
+version = mod_version
 archivesBaseName = 'serverdataaccessor'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -45,7 +45,7 @@ dependencies {
     // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
     // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    implementation 'net.neoforged:neoforge:21.8.10'
+    implementation "net.neoforged:neoforge:${neo_version}"
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"
@@ -67,6 +67,8 @@ dependencies {
 }
 
 jar {
+    archiveFileName = "ServerDataAccessor-${project.mc_version}-${version}.jar"
+
     manifest {
         attributes(["Specification-Title": "ServerDataAccessor",
                     "Specification-Vendor": "Redstone_Dubstep",

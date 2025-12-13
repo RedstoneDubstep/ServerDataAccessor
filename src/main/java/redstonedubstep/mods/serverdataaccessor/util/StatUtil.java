@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -15,12 +14,14 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap.Entry;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.stats.ServerStatsCounter;
 import net.minecraft.stats.Stat;
 import net.minecraft.stats.StatType;
@@ -38,10 +39,9 @@ public class StatUtil {
 
 			if (profileStats != null) {
 				for (Object2IntMap.Entry<Stat<?>> statEntry : profileStats.stats.object2IntEntrySet()) {
-					if (statType.equals(statEntry.getKey().getType()) && (statId.isEmpty() || statEntry.getKey().getValue().equals(statType.getRegistry().get(statId.get()))))
+					if (statType.equals(statEntry.getKey().getType()) && (statId.isEmpty() || statEntry.getKey().getValue().equals(statType.getRegistry().get(statId.get()).map(Holder.Reference::value).orElse(null))))
 						statsCollection.increment(null, statEntry.getKey(), statEntry.getIntValue());
 				}
-
 			}
 		}
 
@@ -51,8 +51,8 @@ public class StatUtil {
 	public static ServerStatsCounter getStatsFromSource(Object statSource, MinecraftServer server) {
 		if (statSource instanceof File statsFile)
 			return new ServerStatsCounter(server, statsFile);
-		else if (statSource instanceof GameProfile profile)
-			return StatUtil.getPlayerStats(profile.getId(), server);
+		else if (statSource instanceof NameAndId profile)
+			return StatUtil.getPlayerStats(profile.id(), server);
 
 		throw new IllegalArgumentException("Object " + statSource + " is not a valid stat source!"); //shouldn't happen
 	}
@@ -75,7 +75,7 @@ public class StatUtil {
 		Pair<Stat<?>, Integer> stat = null;
 
 		if (statType != null && statId != null) {
-			Optional<Entry<Stat<?>>> optionalStat = statsCollection.stats.object2IntEntrySet().stream().filter(e -> e.getKey().getType().equals(statType) && e.getKey().getValue().equals(statType.getRegistry().get(statId))).findFirst();
+			Optional<Entry<Stat<?>>> optionalStat = statsCollection.stats.object2IntEntrySet().stream().filter(e -> e.getKey().getType().equals(statType) && e.getKey().getValue().equals(statType.getRegistry().get(statId).map(Holder.Reference::value).orElse(null))).findFirst();
 
 			if (optionalStat.isPresent())
 				stat = Pair.of(optionalStat.get().getKey(), optionalStat.get().getIntValue());

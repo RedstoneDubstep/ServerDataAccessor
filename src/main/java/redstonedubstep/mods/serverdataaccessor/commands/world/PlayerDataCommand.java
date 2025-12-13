@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.UUID;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -25,6 +24,7 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.level.storage.LevelResource;
 import redstonedubstep.mods.serverdataaccessor.util.FormatUtil;
 import redstonedubstep.mods.serverdataaccessor.util.TagFormatUtil;
@@ -53,7 +53,7 @@ public class PlayerDataCommand {
 		String fileName;
 
 		if (name.length() != 36) { //if the name input is not a valid UUID, try to treat it as a player name
-			UUID uuid = ctx.getSource().getServer().getProfileCache().get(name).map(GameProfile::getId).orElse(null);
+			UUID uuid = ctx.getSource().getServer().services().nameToIdCache().get(name).map(NameAndId::id).orElse(null);
 
 			if (uuid != null) {
 				playerDataFile = Arrays.stream(playerDataFiles).filter(f -> f.getName().contains(uuid.toString()) && f.getName().endsWith(".dat")).findFirst().orElse(null);

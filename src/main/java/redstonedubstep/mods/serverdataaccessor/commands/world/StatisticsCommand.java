@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -34,6 +33,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.stats.ServerStatsCounter;
 import net.minecraft.stats.Stat;
 import net.minecraft.stats.StatType;
@@ -75,13 +75,13 @@ public class StatisticsCommand {
 												.then(Commands.argument("id", ResourceLocationArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, false, null, StatUtil.getStatType(ctx, "type"), ResourceLocationArgument.getId(ctx, "id"))))))));
 	}
 
-	private static int getStatFrom(CommandContext<CommandSourceStack> ctx, Collection<GameProfile> profiles, StatType<?> statType, int page, ResourceLocation statId) throws CommandSyntaxException {
+	private static int getStatFrom(CommandContext<CommandSourceStack> ctx, Collection<NameAndId> profiles, StatType<?> statType, int page, ResourceLocation statId) throws CommandSyntaxException {
 		File statsFolder = ctx.getSource().getServer().getWorldPath(LevelResource.PLAYER_STATS_DIR).toFile();
 		Collection<?> statSource = profiles != null ? profiles : FormatUtil.safeArrayStream(statsFolder.listFiles()).toList();
 		StatsCounter statsCollection = StatUtil.mergeStats(statSource, statType, Optional.ofNullable(statId), ctx.getSource().getServer());
 		Pair<Stat<?>, Integer> stat = StatUtil.getStatFromCollection(statsCollection, statType, statId);
 		Map<Stat<?>, Integer> statMap = stat != null ? Map.of(stat.getLeft(), stat.getRight()) : statsCollection.stats;
-		MutableComponent playerReference = Component.translatable(profiles == null ? "all %2$s players" : (profiles.size() == 1 ? "player %1$s" : "%2$s players"), Optional.ofNullable(profiles).map(p -> p.iterator().next().getName()).orElse(""), statSource.size());
+		MutableComponent playerReference = Component.translatable(profiles == null ? "all %2$s players" : (profiles.size() == 1 ? "player %1$s" : "%2$s players"), Optional.ofNullable(profiles).map(p -> p.iterator().next().name()).orElse(""), statSource.size());
 		MutableComponent statTypeComponent = Component.translatable(StatUtil.getStatTypeTranslation(statType));
 
 		if (statMap.isEmpty()) {
@@ -111,7 +111,7 @@ public class StatisticsCommand {
 		return statsCollection.stats.size();
 	}
 
-	private static int getSpecificStat(CommandContext<CommandSourceStack> ctx, boolean max, Collection<GameProfile> profiles, StatType<?> statType, ResourceLocation statId) throws CommandSyntaxException {
+	private static int getSpecificStat(CommandContext<CommandSourceStack> ctx, boolean max, Collection<NameAndId> profiles, StatType<?> statType, ResourceLocation statId) throws CommandSyntaxException {
 		if (profiles != null && profiles.size() == 1)
 			throw new SimpleCommandExceptionType(Component.literal("Multiple players must be targeted for comparing!")).create();
 
@@ -126,7 +126,7 @@ public class StatisticsCommand {
 		//Compares each statsHolder's stats, picks the best (either the highest or lowest) value and stores it and the corresponding player's name to the variable
 		for (Object statsHolder : statSource) {
 			ServerStatsCounter profileStats = StatUtil.getStatsFromSource(statsHolder, server);
-			String playerIdentifier = statsHolder instanceof File statsFile ? server.getProfileCache().get(UUID.fromString(statsFile.getName().replace(".json", ""))).map(GameProfile::getName).orElse(statsFile.getName().replace(".json", "")) : ((GameProfile)statsHolder).getName();
+			String playerIdentifier = statsHolder instanceof File statsFile ? server.services().nameToIdCache().get(UUID.fromString(statsFile.getName().replace(".json", ""))).map(NameAndId::name).orElse(statsFile.getName().replace(".json", "")) : ((NameAndId) statsHolder).name();
 
 			if (profileStats != null) {
 				Map<Stat<?>, Integer> statsOfType = profileStats.stats.object2IntEntrySet().stream().filter(e -> e.getKey().getType().equals(statType)).collect(Collectors.toMap(Map.Entry::getKey, Entry::getIntValue));
