@@ -18,8 +18,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.stats.ServerStatsCounter;
@@ -31,7 +31,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.LevelResource;
 public class StatUtil {
-	public static StatsCounter mergeStats(Iterable<?> targets, StatType<?> statType, Optional<ResourceLocation> statId, MinecraftServer server) {
+	public static StatsCounter mergeStats(Iterable<?> targets, StatType<?> statType, Optional<Identifier> statId, MinecraftServer server) {
 		StatsCounter statsCollection = new StatsCounter();
 
 		for (Object statsHolder : targets) {
@@ -50,7 +50,7 @@ public class StatUtil {
 
 	public static ServerStatsCounter getStatsFromSource(Object statSource, MinecraftServer server) {
 		if (statSource instanceof File statsFile)
-			return new ServerStatsCounter(server, statsFile);
+			return new ServerStatsCounter(server, statsFile.toPath());
 		else if (statSource instanceof NameAndId profile)
 			return StatUtil.getPlayerStats(profile.id(), server);
 
@@ -65,13 +65,13 @@ public class StatUtil {
 			File statsFile = new File(statsFolder, playerUUID + ".json");
 
 			if (statsFile.isFile())
-				serverstatscounter = new ServerStatsCounter(server, statsFile);
+				serverstatscounter = new ServerStatsCounter(server, statsFile.toPath());
 		}
 
 		return serverstatscounter;
 	}
 
-	public static Pair<Stat<?>, Integer> getStatFromCollection(StatsCounter statsCollection, StatType<?> statType, ResourceLocation statId) throws CommandSyntaxException {
+	public static Pair<Stat<?>, Integer> getStatFromCollection(StatsCounter statsCollection, StatType<?> statType, Identifier statId) throws CommandSyntaxException {
 		Pair<Stat<?>, Integer> stat = null;
 
 		if (statType != null && statId != null) {
@@ -93,13 +93,13 @@ public class StatUtil {
 			return item.getDescriptionId();
 		else if (stat.getValue() instanceof EntityType<?> type)
 			return type.getDescriptionId();
-		else if (stat.getValue() instanceof ResourceLocation location)
+		else if (stat.getValue() instanceof Identifier location)
 			return getStatTranslationKey(location);
 
 		return "";
 	}
 
-	public static String getStatTranslationKey(ResourceLocation customStatLocation) {
+	public static String getStatTranslationKey(Identifier customStatLocation) {
 		return customStatLocation == null ? "unknown" : "stat." + customStatLocation.toString().replace(':', '.');
 	}
 

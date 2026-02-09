@@ -19,14 +19,14 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.NbtPathArgument;
 import net.minecraft.commands.arguments.NbtPathArgument.NbtPath;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.LevelResource;
 import redstonedubstep.mods.serverdataaccessor.util.TagFormatUtil;
 
@@ -37,12 +37,12 @@ public class StructuresCommand {
 		return Commands.literal("structures")
 				.then(Commands.literal("count").executes(StructuresCommand::countStructureDataFiles))
 				.then(Commands.literal("get")
-						.then(Commands.argument("name", ResourceLocationArgument.id()).suggests(SUGGEST_STRUCTURES).executes(ctx -> sendStructureData(ctx, ResourceLocationArgument.getId(ctx, "name"), 1, null))
-								.then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(ctx -> sendStructureData(ctx, ResourceLocationArgument.getId(ctx, "name"), IntegerArgumentType.getInteger(ctx, "page"), null))
-										.then(Commands.argument("path", NbtPathArgument.nbtPath()).executes(ctx -> sendStructureData(ctx, ResourceLocationArgument.getId(ctx, "name"), IntegerArgumentType.getInteger(ctx, "page"), NbtPathArgument.getPath(ctx, "path")))))));
+						.then(Commands.argument("name", IdentifierArgument.id()).suggests(SUGGEST_STRUCTURES).executes(ctx -> sendStructureData(ctx, IdentifierArgument.getId(ctx, "name"), 1, null))
+								.then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(ctx -> sendStructureData(ctx, IdentifierArgument.getId(ctx, "name"), IntegerArgumentType.getInteger(ctx, "page"), null))
+										.then(Commands.argument("path", NbtPathArgument.nbtPath()).executes(ctx -> sendStructureData(ctx, IdentifierArgument.getId(ctx, "name"), IntegerArgumentType.getInteger(ctx, "page"), NbtPathArgument.getPath(ctx, "path")))))));
 	}
 
-	private static int sendStructureData(CommandContext<CommandSourceStack> ctx, ResourceLocation name, int page, NbtPath path) throws CommandSyntaxException {
+	private static int sendStructureData(CommandContext<CommandSourceStack> ctx, Identifier name, int page, NbtPath path) throws CommandSyntaxException {
 		Path generatedFolderPath = ctx.getSource().getServer().getWorldPath(LevelResource.GENERATED_DIR);
 		File structureFile = generatedFolderPath.resolve(Path.of(name.getNamespace(), "structures", name.getPath() + ".nbt")).toFile();
 
@@ -84,9 +84,9 @@ public class StructuresCommand {
 	}
 
 	private static int countStructureDataFiles(CommandContext<CommandSourceStack> ctx) {
-		List<ResourceLocation> structureFiles = getAllStructures(ctx);
+		List<Identifier> structureFiles = getAllStructures(ctx);
 		int count = structureFiles.size();
-		int namespaces = (int)structureFiles.stream().map(ResourceLocation::getNamespace).distinct().count();
+		int namespaces = (int)structureFiles.stream().map(Identifier::getNamespace).distinct().count();
 
 		if (count == 0)
 			ctx.getSource().sendFailure(Component.literal("No structures found"));
@@ -96,10 +96,10 @@ public class StructuresCommand {
 		return count;
 	}
 
-	private static List<ResourceLocation> getAllStructures(CommandContext<CommandSourceStack> ctx) {
+	private static List<Identifier> getAllStructures(CommandContext<CommandSourceStack> ctx) {
 		Path generatedFolderPath = ctx.getSource().getServer().getWorldPath(LevelResource.GENERATED_DIR);
 		File generatedFolder = generatedFolderPath.toFile();
-		List<ResourceLocation> structures = new ArrayList<>();
+		List<Identifier> structures = new ArrayList<>();
 
 		if (generatedFolder.exists() && generatedFolder.listFiles() != null) {
 			for (File namespaceFolder : generatedFolder.listFiles()) {
@@ -108,7 +108,7 @@ public class StructuresCommand {
 				if (structuresFolder.exists() && structuresFolder.listFiles() != null) {
 					for (File pathFile : structuresFolder.listFiles()) {
 						if (pathFile.getName().endsWith(".nbt"))
-							structures.add(ResourceLocation.fromNamespaceAndPath(namespaceFolder.getName(), pathFile.getName().replace(".nbt", "")));
+							structures.add(Identifier.fromNamespaceAndPath(namespaceFolder.getName(), pathFile.getName().replace(".nbt", "")));
 					}
 				}
 			}

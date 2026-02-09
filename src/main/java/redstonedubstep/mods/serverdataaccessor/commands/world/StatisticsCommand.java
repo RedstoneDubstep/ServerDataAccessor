@@ -24,14 +24,14 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.arguments.ResourceKeyArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.stats.ServerStatsCounter;
@@ -51,31 +51,31 @@ public class StatisticsCommand {
 						.then(Commands.argument("players", GameProfileArgument.gameProfile())
 								.then(Commands.argument("type", ResourceKeyArgument.key(Registries.STAT_TYPE)).executes(ctx -> getStatFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), 1, null))
 										.then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(ctx -> getStatFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), IntegerArgumentType.getInteger(ctx, "page"), null))
-												.then(Commands.argument("id", ResourceLocationArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getStatFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), IntegerArgumentType.getInteger(ctx, "page"), ResourceLocationArgument.getId(ctx, "id"))))))))
+												.then(Commands.argument("id", IdentifierArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getStatFrom(ctx, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), IntegerArgumentType.getInteger(ctx, "page"), IdentifierArgument.getId(ctx, "id"))))))))
 				.then(Commands.literal("global")
 						.then(Commands.argument("type", ResourceKeyArgument.key(Registries.STAT_TYPE)).executes(ctx -> getStatFrom(ctx, null, StatUtil.getStatType(ctx, "type"), 1, null))
 								.then(Commands.argument("page", IntegerArgumentType.integer(1)).executes(ctx -> getStatFrom(ctx, null, StatUtil.getStatType(ctx, "type"), IntegerArgumentType.getInteger(ctx, "page"), null))
-										.then(Commands.argument("id", ResourceLocationArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getStatFrom(ctx, null, StatUtil.getStatType(ctx, "type"), IntegerArgumentType.getInteger(ctx, "page"), ResourceLocationArgument.getId(ctx, "id")))))))
+										.then(Commands.argument("id", IdentifierArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getStatFrom(ctx, null, StatUtil.getStatType(ctx, "type"), IntegerArgumentType.getInteger(ctx, "page"), IdentifierArgument.getId(ctx, "id")))))))
 				.then(Commands.literal("compare")
 						.then(Commands.literal("max")
 								.then(Commands.literal("players")
 										.then(Commands.argument("players", GameProfileArgument.gameProfile())
 												.then(Commands.argument("type", ResourceKeyArgument.key(Registries.STAT_TYPE)).executes(ctx -> getSpecificStat(ctx, true, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), null))
-														.then(Commands.argument("id", ResourceLocationArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, true, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), ResourceLocationArgument.getId(ctx, "id")))))))
+														.then(Commands.argument("id", IdentifierArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, true, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), IdentifierArgument.getId(ctx, "id")))))))
 								.then(Commands.literal("global")
 										.then(Commands.argument("type", ResourceKeyArgument.key(Registries.STAT_TYPE)).executes(ctx -> getSpecificStat(ctx, true, null, StatUtil.getStatType(ctx, "type"), null))
-												.then(Commands.argument("id", ResourceLocationArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, true, null, StatUtil.getStatType(ctx, "type"), ResourceLocationArgument.getId(ctx, "id")))))))
+												.then(Commands.argument("id", IdentifierArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, true, null, StatUtil.getStatType(ctx, "type"), IdentifierArgument.getId(ctx, "id")))))))
 						.then(Commands.literal("min")
 								.then(Commands.literal("players")
 										.then(Commands.argument("players", GameProfileArgument.gameProfile())
 												.then(Commands.argument("type", ResourceKeyArgument.key(Registries.STAT_TYPE)).executes(ctx -> getSpecificStat(ctx, false, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), null))
-														.then(Commands.argument("id", ResourceLocationArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, false, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), ResourceLocationArgument.getId(ctx, "id")))))))
+														.then(Commands.argument("id", IdentifierArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, false, GameProfileArgument.getGameProfiles(ctx, "players"), StatUtil.getStatType(ctx, "type"), IdentifierArgument.getId(ctx, "id")))))))
 								.then(Commands.literal("global")
 										.then(Commands.argument("type", ResourceKeyArgument.key(Registries.STAT_TYPE)).executes(ctx -> getSpecificStat(ctx, false, null, StatUtil.getStatType(ctx, "type"), null))
-												.then(Commands.argument("id", ResourceLocationArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, false, null, StatUtil.getStatType(ctx, "type"), ResourceLocationArgument.getId(ctx, "id"))))))));
+												.then(Commands.argument("id", IdentifierArgument.id()).suggests(SUGGEST_STATS).executes(ctx -> getSpecificStat(ctx, false, null, StatUtil.getStatType(ctx, "type"), IdentifierArgument.getId(ctx, "id"))))))));
 	}
 
-	private static int getStatFrom(CommandContext<CommandSourceStack> ctx, Collection<NameAndId> profiles, StatType<?> statType, int page, ResourceLocation statId) throws CommandSyntaxException {
+	private static int getStatFrom(CommandContext<CommandSourceStack> ctx, Collection<NameAndId> profiles, StatType<?> statType, int page, Identifier statId) throws CommandSyntaxException {
 		File statsFolder = ctx.getSource().getServer().getWorldPath(LevelResource.PLAYER_STATS_DIR).toFile();
 		Collection<?> statSource = profiles != null ? profiles : FormatUtil.safeArrayStream(statsFolder.listFiles()).toList();
 		StatsCounter statsCollection = StatUtil.mergeStats(statSource, statType, Optional.ofNullable(statId), ctx.getSource().getServer());
@@ -111,7 +111,7 @@ public class StatisticsCommand {
 		return statsCollection.stats.size();
 	}
 
-	private static int getSpecificStat(CommandContext<CommandSourceStack> ctx, boolean max, Collection<NameAndId> profiles, StatType<?> statType, ResourceLocation statId) throws CommandSyntaxException {
+	private static int getSpecificStat(CommandContext<CommandSourceStack> ctx, boolean max, Collection<NameAndId> profiles, StatType<?> statType, Identifier statId) throws CommandSyntaxException {
 		if (profiles != null && profiles.size() == 1)
 			throw new SimpleCommandExceptionType(Component.literal("Multiple players must be targeted for comparing!")).create();
 

@@ -19,7 +19,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.DimensionDataStorage;
 import redstonedubstep.mods.serverdataaccessor.util.FormatUtil;
@@ -38,7 +38,7 @@ public class DimensionDataCommand {
 
 	private static int getLevelData(CommandContext<CommandSourceStack> ctx, ServerLevel level, String filename, int page, NbtPath path) throws CommandSyntaxException {
 		DimensionDataStorage dataStorage = level.getDataStorage();
-		String levelName = ctx.getArgument("dimension", ResourceLocation.class).toString();
+		String levelName = ctx.getArgument("dimension", Identifier.class).toString();
 		CompoundTag data;
 
 		try {
