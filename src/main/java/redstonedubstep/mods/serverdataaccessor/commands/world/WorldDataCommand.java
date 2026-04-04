@@ -35,7 +35,7 @@ public class WorldDataCommand {
 
 	private static int getVanillaWorldData(CommandContext<CommandSourceStack> ctx, int page, NbtPath path) throws CommandSyntaxException {
 		WorldData data = ctx.getSource().getServer().getWorldData();
-		CompoundTag worldTag = data.createTag(ctx.getSource().getServer().registryAccess(), null);
+		CompoundTag worldTag = data.createTag(null);
 
 		Tag foundTag = path != null ? path.get(worldTag).iterator().next() : worldTag;
 

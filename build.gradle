@@ -3,18 +3,17 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.107'
-}
-
-repositories {
-    mavenLocal()
+    id 'net.neoforged.moddev' version '2.0.134'
 }
 
 group = 'redstonedubstep.mods'
 version = mod_version
-archivesBaseName = 'serverdataaccessor'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+base {
+    archivesName = 'serverdataaccessor'
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 
 neoForge {
