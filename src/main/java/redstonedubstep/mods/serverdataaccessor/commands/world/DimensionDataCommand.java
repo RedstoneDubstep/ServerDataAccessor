@@ -47,7 +47,7 @@ public class DimensionDataCommand {
 		try {
 			 data = dataStorage.readTagFromDisk(dataStorage.getDataFile(filename), null, SharedConstants.getCurrentVersion().dataVersion().version()).getCompoundOrEmpty("data");
 		} catch(Exception exception) {
-			ctx.getSource().sendFailure(Component.translatable("Couldn't read data \"%1$s\" of dimension \"%2$s\"", filename, levelName));
+			ctx.getSource().sendFailure(Component.translatable("Couldn't read data \"%1$s\" of dimension \"%2$s\"", filename.toString(), levelName));
 			return 0;
 		}
 
@@ -58,7 +58,7 @@ public class DimensionDataCommand {
 		int currentPage = page > totalPages ? totalPages - 1 : page - 1;
 
 		if (totalTagEntries == 0) {
-			ctx.getSource().sendFailure(Component.translatable("Data \"%1$s\" of dimension \"%2$s\" does not contain any tags at given path", filename, levelName));
+			ctx.getSource().sendFailure(Component.translatable("Data \"%1$s\" of dimension \"%2$s\" does not contain any tags at given path", filename.toString(), levelName));
 			return 0;
 		}
 
